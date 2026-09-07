@@ -31,7 +31,7 @@ node src/cli.js hero \
 
 `--template` accepte `desktop` (moniteur sur pied), `browser` (fenêtre de navigateur) ou `mobile` (coque de téléphone bord à bord, écran + boutons + pastille caméra — voir capture ci-dessous). En viewport portrait par défaut (390×844), pas besoin de le préciser.
 
-![Exemple gabarit mobile](./doc/preview-mobile.png)
+![Exemple gabarit mobile](./doc/preview.png)
 
 Galerie de captures brutes (plusieurs pages, habillage léger en fenêtre de navigateur, sans pied ni ombre — pour la section "galerie visuelle" de la page portfolio) :
 
