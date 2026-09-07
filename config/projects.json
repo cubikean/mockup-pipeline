@@ -2,13 +2,32 @@
   "outputDir": "output",
   "projects": [
     {
-      "name": "cubicom",
-      "baseUrl": "https://cubicom.fr",
+      "name": "opencampusinnov",
+      "baseUrl": "https://etudiant.opencampusinnov.fr/",
+
+      "hero": {
+        "path": "/",
+        "template": "desktop",
+        "viewport": { "width": 1440, "height": 900, "deviceScaleFactor": 2 },
+        
+        "background": "transparent",
+        "padding": 140
+      },
+
+      "gallery": {
+        "template": "browser",
+        "viewport": { "width": 1920, "height": 1080, "deviceScaleFactor": 2 },
+        "background": "transparent",
+        "pages": [
+          { "path": "/evenements-et-serious-games/startup-weekend-la-rochelle", "label": "serious-games" }
+        ]
+      },
     
       "carousel": {
         "template": "mobile",
         "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 3 },
         "frameOptions": { "buttonColor": "#f2323c" },
+       
         "background": "transparent",
         "padding": 100,
         "pages": [

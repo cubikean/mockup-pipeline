@@ -35,9 +35,9 @@ async function captureScreenshot(options) {
     width = 1440,
     height = 900,
     deviceScaleFactor = 2,
-    fullPage = false,
+    fullPage = true,
     waitAfterLoadMs = 5000,
-    hideSelectors = [],
+    hideSelectors = ["cmplz-cookiebanner-container", "cmplz-cookiebanner", ".cmplz-cookiebanner"],
     timeoutMs = 30000,
     retries = 3,
     retryBaseDelayMs = 5000,
@@ -110,5 +110,7 @@ async function captureScreenshot(options) {
     await browser.close();
   }
 }
+
+
 
 module.exports = { captureScreenshot };
