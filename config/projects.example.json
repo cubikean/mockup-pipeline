@@ -9,14 +9,17 @@
         "template": "desktop",
         "viewport": { "width": 1440, "height": 900, "deviceScaleFactor": 2 },
         "background": "#f4f2ee",
-        "padding": 140
+        "padding": 140,
+        "scrollTo": 0
       },
       "gallery": {
         "template": "browser",
         "viewport": { "width": 1280, "height": 800, "deviceScaleFactor": 2 },
+        "scrollTo": 0,
         "pages": [
           { "path": "/", "label": "accueil" },
-          { "path": "/contact", "label": "contact" }
+          { "path": "/", "label": "nos-services", "scrollTo": "#services" },
+          { "path": "/contact", "label": "contact", "scrollTo": 600 }
         ]
       },
       "carousel": {

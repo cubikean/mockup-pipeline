@@ -2,8 +2,8 @@
   "outputDir": "output",
   "projects": [
     {
-      "name": "opencampusinnov",
-      "baseUrl": "https://etudiant.opencampusinnov.fr/",
+      "name": "pepiteeca",
+      "baseUrl": "https://pepite-eca.fr/",
 
       "hero": {
         "path": "/",
@@ -19,7 +19,7 @@
         "viewport": { "width": 1920, "height": 1080, "deviceScaleFactor": 2 },
         "background": "transparent",
         "pages": [
-          { "path": "/evenements-et-serious-games/startup-weekend-la-rochelle", "label": "serious-games" }
+          { "path": "/les-missions-du-pepite-eca", "label": "missions" }
         ]
       },
     
@@ -31,7 +31,11 @@
         "background": "transparent",
         "padding": 100,
         "pages": [
-          { "path": "/", "label": "accueil" }
+          { "path": "/", "label": "accueil" },
+          { "path": "/devenir-etudiant-entrepreneur/", "label": "devenir etudiant entrepreneur" },
+          { "path": "/actualites", "label": "actualites" },
+          { "path": "/manon-loustau-ceo-de-libu-laureate-du-concours-pepites-des-pepite-2026/", "label": "single article" },
+          { "path": "/contact", "label": "contact" }
         ]
       }
     }

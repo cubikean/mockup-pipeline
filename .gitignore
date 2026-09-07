@@ -2,4 +2,6 @@ node_modules/
 output/
 .cache/
 .testsite/
+.serena/
+.pw-cache/
 *.log

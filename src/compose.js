@@ -8,13 +8,40 @@
 const sharp = require('sharp');
 const { getFrame, roundedRectPath } = require('./frames');
 
+/** Réglages de l'ombre portée. */
+const SHADOW = {
+  blur: 24,
+  offsetY: 24,
+  /** Hauteur ajoutée sous le mockup pour que l'ombre décalée ne soit pas rognée. */
+  extraHeight: 30,
+  color: { r: 15, g: 15, b: 20 },
+};
+
+const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
+
+/** Rasterise un markup SVG en PNG. */
+const rasterize = (svg) => sharp(Buffer.from(svg)).png().toBuffer();
+
+/**
+ * Canvas vierge de la taille donnée, sur lequel des calques sont composés.
+ * @param {number} width
+ * @param {number} height
+ * @param {{r:number,g:number,b:number,alpha:number}} background
+ * @param {Array<object>} layers calques `composite()` de Sharp
+ */
+const composeLayers = (width, height, background, layers) =>
+  sharp({ create: { width, height, channels: 4, background } })
+    .composite(layers)
+    .png()
+    .toBuffer();
+
 /**
  * @typedef {Object} ComposeOptions
  * @property {Buffer} screenshot          buffer PNG de la capture
  * @property {'browser'|'desktop'|'mobile'} template  gabarit à utiliser
  * @property {number} [outputWidth=1600]  largeur cible de la zone d'écran dans le mockup
  * @property {object} [frameOptions={}]   options passées au générateur de frame (couleurs...)
- * @property {{width:number,height:number}|null} [padding=null] marge autour du mockup (fond)
+ * @property {number} [padding=120]       marge (px) ajoutée autour du mockup avant export
  * @property {string} [background='transparent']  couleur de fond ('transparent' ou hex)
  * @property {boolean} [shadow=true]      ajouter une ombre portée douce sous le mockup
  */
@@ -41,116 +68,77 @@ async function composeMockup(opts) {
   const frame = getFrame(template, outputWidth, screenHeight, frameOptions);
 
   // 1. Redimensionne la capture pour remplir exactement la zone d'écran du cadre
-  let resizedScreenshot = await sharp(screenshot)
+  let screenLayer = await sharp(screenshot)
     .resize(frame.screenRect.width, frame.screenRect.height, { fit: 'cover', position: 'top' })
     .png()
     .toBuffer();
 
-  // 1bis. Masque le screenshot avec les MÊMES rayons d'angle que la zone
-  // d'écran du cadre (frame.screenRadius). Sans ça, un screenshot a des
-  // coins droits par nature : si le rayon du cadre est grand par rapport à
-  // l'épaisseur du bezel, le coin carré du screenshot dépasse visuellement
-  // du contour arrondi du cadre. Ce masque élimine le problème quel que
-  // soit le réglage bezel/radius passé via frameOptions.
+  // 1bis. Masque la capture avec les MÊMES rayons d'angle que la zone d'écran
+  // du cadre (frame.screenRadius). Sans ça, une capture a des coins droits par
+  // nature : si le rayon du cadre est grand par rapport à l'épaisseur du bezel,
+  // le coin carré de la capture dépasse visuellement du contour arrondi. Ce
+  // masque élimine le problème quel que soit le réglage bezel/radius passé via
+  // frameOptions.
   if (frame.screenRadius) {
-    const maskPath = roundedRectPath(0, 0, frame.screenRect.width, frame.screenRect.height, frame.screenRadius);
-    const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${frame.screenRect.width}" height="${frame.screenRect.height}"><path d="${maskPath}" fill="#fff"/></svg>`;
-    const maskBuffer = await sharp(Buffer.from(maskSvg)).png().toBuffer();
-    resizedScreenshot = await sharp(resizedScreenshot)
-      .composite([{ input: maskBuffer, blend: 'dest-in' }])
-      .png()
-      .toBuffer();
+    const { width, height } = frame.screenRect;
+    const maskPath = roundedRectPath(0, 0, width, height, frame.screenRadius);
+    const mask = await rasterize(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><path d="${maskPath}" fill="#fff"/></svg>`
+    );
+    screenLayer = await sharp(screenLayer).composite([{ input: mask, blend: 'dest-in' }]).png().toBuffer();
   }
 
-  // 2. Rasterise le cadre SVG (avec trou transparent) en PNG à la bonne taille
-  const frameBuffer = await sharp(Buffer.from(frame.svg)).png().toBuffer();
-
-  // 2bis. Certains gabarits (ex: mobile) ont un élément posé SUR l'écran
-  // (pastille caméra) : ce calque doit passer AU-DESSUS de la capture,
-  // contrairement au cadre qui passe en-dessous de la zone d'écran.
+  // 2. Empile capture (dessous) + cadre (dessus) sur un canvas transparent.
+  //    Certains gabarits (ex: mobile) ont en plus un élément posé SUR l'écran
+  //    (pastille caméra) : ce calque passe AU-DESSUS de la capture, contrairement
+  //    au cadre qui est percé à l'emplacement de l'écran.
   const layers = [
-    { input: resizedScreenshot, left: frame.screenRect.x, top: frame.screenRect.y },
-    { input: frameBuffer, left: 0, top: 0 },
+    { input: screenLayer, left: frame.screenRect.x, top: frame.screenRect.y },
+    { input: await rasterize(frame.svg), left: 0, top: 0 },
   ];
   if (frame.overlaySvg) {
-    const overlayBuffer = await sharp(Buffer.from(frame.overlaySvg)).png().toBuffer();
-    layers.push({ input: overlayBuffer, left: 0, top: 0 });
+    layers.push({ input: await rasterize(frame.overlaySvg), left: 0, top: 0 });
   }
 
-  // 3. Empile capture (dessous) + cadre (dessus) + overlay éventuel sur un canvas transparent
-  let mockup = sharp({
-    create: {
-      width: frame.width,
-      height: frame.height,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  }).composite(layers);
+  // Les dimensions sont suivies au fil des étapes plutôt que relues via
+  // metadata() : le canvas de départ fixe la taille, chaque étape ne fait
+  // que l'agrandir de façon connue.
+  let width = frame.width;
+  let height = frame.height;
+  let mockup = await composeLayers(width, height, TRANSPARENT, layers);
 
-  let mockupBuffer = await mockup.png().toBuffer();
-
-  // 4. Ombre portée douce (optionnelle) : silhouette floutée noire semi-transparente
+  // 3. Ombre portée douce (optionnelle) : silhouette floutée semi-transparente
   if (shadow) {
-    const shadowMeta = await sharp(mockupBuffer).metadata();
-    const shadowLayer = await sharp(mockupBuffer)
+    const silhouette = await sharp(mockup)
       .ensureAlpha()
       .extractChannel('alpha')
       .toColourspace('b-w')
-      .blur(24)
+      .blur(SHADOW.blur)
       .toBuffer();
 
-    const shadowRgba = await sharp({
-      create: {
-        width: shadowMeta.width,
-        height: shadowMeta.height,
-        channels: 4,
-        background: { r: 15, g: 15, b: 20, alpha: 0 },
-      },
-    })
-      .composite([{ input: shadowLayer, blend: 'dest-in' }])
-      .png()
-      .toBuffer();
+    const shadowLayer = await composeLayers(width, height, { ...SHADOW.color, alpha: 0 }, [
+      { input: silhouette, blend: 'dest-in' },
+    ]);
 
-    mockupBuffer = await sharp({
-      create: {
-        width: shadowMeta.width,
-        height: shadowMeta.height + 30,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      },
-    })
-      .composite([
-        { input: shadowRgba, left: 0, top: 24, blend: 'over' },
-        { input: mockupBuffer, left: 0, top: 0, blend: 'over' },
-      ])
-      .png()
-      .toBuffer();
+    height += SHADOW.extraHeight;
+    mockup = await composeLayers(width, height, TRANSPARENT, [
+      { input: shadowLayer, left: 0, top: SHADOW.offsetY, blend: 'over' },
+      { input: mockup, left: 0, top: 0, blend: 'over' },
+    ]);
   }
 
-  // 5. Marge + fond final
+  // 4. Marge + fond final
   if (padding > 0 || background !== 'transparent') {
-    const finalMeta = await sharp(mockupBuffer).metadata();
-    const bg =
-      background === 'transparent'
-        ? { r: 0, g: 0, b: 0, alpha: 0 }
-        : hexToRgba(background);
-
-    mockupBuffer = await sharp({
-      create: {
-        width: finalMeta.width + padding * 2,
-        height: finalMeta.height + padding * 2,
-        channels: 4,
-        background: bg,
-      },
-    })
-      .composite([{ input: mockupBuffer, left: padding, top: padding }])
-      .png()
-      .toBuffer();
+    const bg = background === 'transparent' ? TRANSPARENT : hexToRgba(background);
+    mockup = await composeLayers(width + padding * 2, height + padding * 2, bg, [
+      { input: mockup, left: padding, top: padding },
+    ]);
   }
 
-  return mockupBuffer;
+  return mockup;
 }
 
+/** Convertit '#rgb' ou '#rrggbb' en objet couleur Sharp opaque. */
 function hexToRgba(hex) {
   const h = hex.replace('#', '');
   const bigint = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);

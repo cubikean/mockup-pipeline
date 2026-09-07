@@ -76,9 +76,11 @@ Tout se décrit dans un fichier JSON (voir `config/projects.example.json`) :
       "gallery": {
         "template": "browser",
         "viewport": { "width": 1280, "height": 800, "deviceScaleFactor": 2 },
+        "scrollTo": 0,
         "pages": [
           { "path": "/", "label": "accueil" },
-          { "path": "/contact", "label": "contact" }
+          { "path": "/", "label": "nos-services", "scrollTo": "#services" },
+          { "path": "/contact", "label": "contact", "scrollTo": 600 }
         ]
       },
       "carousel": {
@@ -104,6 +106,58 @@ node src/cli.js batch --config config/projects.json
 ```
 
 Chaque projet ressort dans `output/<nom-du-projet>/` avec son mockup hero, sa galerie et son carrousel mobile. Pour ajouter les 5 prochains clients au portfolio, il suffit d'ajouter 5 blocs dans ce fichier et de relancer la commande — plus aucune manipulation manuelle. Un bloc (`hero`, `gallery` ou `carousel`) peut être omis si un projet n'en a pas besoin.
+
+## Capturer plus bas dans la page (`scrollTo`)
+
+Par défaut la capture montre le haut de la page. `scrollTo` fait défiler la page
+avant de déclencher la capture, ce qui permet de montrer une section précise
+(une grille de services, un témoignage, une carte) plutôt que le hero du site.
+
+Deux formes acceptées :
+
+| Valeur | Effet |
+|---|---|
+| un nombre | défile de N pixels depuis le haut (`"scrollTo": 1200`) |
+| un sélecteur CSS | amène cet élément en haut du viewport (`"scrollTo": "#services"`) |
+
+Le sélecteur est plus robuste qu'une valeur en pixels : il reste juste même si
+le contenu au-dessus change de hauteur.
+
+`scrollTo` se règle à trois niveaux, du plus général au plus précis — le plus
+précis l'emporte :
+
+```json
+{
+  "name": "Exemple Client",
+  "baseUrl": "https://exemple-client.fr",
+  "scrollTo": 0,
+  "gallery": {
+    "scrollTo": 300,
+    "pages": [
+      { "path": "/", "label": "accueil" },
+      { "path": "/", "label": "services", "scrollTo": "#services" },
+      { "path": "/contact", "label": "contact", "scrollTo": 0 }
+    ]
+  }
+}
+```
+
+Ici la page `accueil` hérite du `scrollTo: 300` de la galerie, `services` défile
+jusqu'à l'élément `#services`, et `contact` annule le défilement avec `0`.
+
+En ligne de commande : `--scroll 1200` ou `--scroll "#services"`.
+
+Notes :
+
+- Le défilement est forcé en mode instantané : un site en `scroll-behavior: smooth`
+  serait sinon capturé en pleine animation, à une position imprévisible.
+- Après le défilement, le script attend 1000 ms (`waitAfterScrollMs`) pour laisser
+  arriver les images en lazy-load et les animations d'apparition. À augmenter sur
+  un site lent.
+- Un sélecteur qui ne correspond à rien produit un avertissement et une capture
+  non défilée — le lot n'est pas interrompu.
+- `scrollTo` est sans effet si `viewport.fullPage` vaut `true` (toute la page est
+  déjà capturée) ; le script le signale.
 
 ## Personnaliser les cadres
 
