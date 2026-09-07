@@ -1,0 +1,20 @@
+{
+  "outputDir": "output",
+  "projects": [
+    {
+      "name": "cubicom",
+      "baseUrl": "https://cubicom.fr",
+    
+      "carousel": {
+        "template": "mobile",
+        "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 3 },
+        "frameOptions": { "buttonColor": "#f2323c" },
+        "background": "transparent",
+        "padding": 100,
+        "pages": [
+          { "path": "/", "label": "accueil" }
+        ]
+      }
+    }
+  ]
+}

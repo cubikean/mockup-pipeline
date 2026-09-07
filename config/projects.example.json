@@ -1,0 +1,35 @@
+{
+  "outputDir": "output",
+  "projects": [
+    {
+      "name": "Exemple Client",
+      "baseUrl": "https://example.com",
+      "hero": {
+        "path": "/",
+        "template": "desktop",
+        "viewport": { "width": 1440, "height": 900, "deviceScaleFactor": 2 },
+        "background": "#f4f2ee",
+        "padding": 140
+      },
+      "gallery": {
+        "template": "browser",
+        "viewport": { "width": 1280, "height": 800, "deviceScaleFactor": 2 },
+        "pages": [
+          { "path": "/", "label": "accueil" },
+          { "path": "/contact", "label": "contact" }
+        ]
+      },
+      "carousel": {
+        "template": "mobile",
+        "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 3 },
+        "background": "#ffffff",
+        "padding": 100,
+        "pages": [
+          { "path": "/", "label": "accueil" },
+          { "path": "/contact", "label": "contact" },
+          { "path": "/equipe", "label": "equipe" }
+        ]
+      }
+    }
+  ]
+}
