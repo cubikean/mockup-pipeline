@@ -32,6 +32,19 @@
           { "path": "/contact", "label": "contact" },
           { "path": "/equipe", "label": "equipe" }
         ]
+      },
+      "gif": {
+        "path": "/",
+        "template": "browser",
+        "viewport": { "width": 1280, "height": 800, "deviceScaleFactor": 2 },
+        "background": "#ffffff",
+        "padding": 60,
+        "scrollFrom": 0,
+        "scrollTo": "#contact",
+        "seconds": 3,
+        "fps": 12,
+        "maxWidth": 900,
+        "easing": "ease-in-out"
       }
     }
   ]

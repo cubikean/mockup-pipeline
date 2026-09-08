@@ -5,38 +5,17 @@
       "name": "pepiteeca",
       "baseUrl": "https://pepite-eca.fr/",
 
-      "hero": {
+      
+      "gif": {
         "path": "/",
-        "template": "desktop",
-        "viewport": { "width": 1440, "height": 900, "deviceScaleFactor": 2 },
-        
-        "background": "transparent",
-        "padding": 140
-      },
-
-      "gallery": {
         "template": "browser",
-        "viewport": { "width": 1920, "height": 1080, "deviceScaleFactor": 2 },
-        "background": "transparent",
-        "pages": [
-          { "path": "/les-missions-du-pepite-eca", "label": "missions" }
-        ]
-      },
-    
-      "carousel": {
-        "template": "mobile",
-        "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 3 },
-        "frameOptions": { "buttonColor": "#f2323c" },
-       
-        "background": "transparent",
-        "padding": 100,
-        "pages": [
-          { "path": "/", "label": "accueil" },
-          { "path": "/devenir-etudiant-entrepreneur/", "label": "devenir etudiant entrepreneur" },
-          { "path": "/actualites", "label": "actualites" },
-          { "path": "/manon-loustau-ceo-de-libu-laureate-du-concours-pepites-des-pepite-2026/", "label": "single article" },
-          { "path": "/contact", "label": "contact" }
-        ]
+        "viewport": { "width": 1280, "height": 800, "deviceScaleFactor": 2 },
+        "background": "#ffffff",
+        "padding": 60,
+        "seconds": 3,
+        "fps": 12,
+        "maxWidth": 900,
+        "easing": "ease-in-out"
       }
     }
   ]

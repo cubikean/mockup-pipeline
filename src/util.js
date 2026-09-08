@@ -43,6 +43,18 @@ function toInt(value) {
   return Math.round(n);
 }
 
+/**
+ * Variante décimale de `toInt`, pour les options qui admettent une fraction
+ * (durée d'un GIF en secondes, par exemple).
+ */
+function toNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) {
+    throw new Error(`valeur numérique attendue, reçu "${value}"`);
+  }
+  return n;
+}
+
 /** Découpe une liste passée en ligne de commande ("a,b , c" → ['a','b','c']). */
 function splitList(value) {
   if (!value) return undefined;
@@ -52,4 +64,4 @@ function splitList(value) {
     .filter(Boolean);
 }
 
-module.exports = { sleep, ensureDir, slugify, toInt, splitList };
+module.exports = { sleep, ensureDir, slugify, toInt, toNumber, splitList };
